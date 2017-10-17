@@ -37,7 +37,7 @@ type TreeNode struct {
 	left      *TreeNode
 	right     *TreeNode
 	key       interface{}
-	Value     interface{}
+	Values    []interface{}
 	height    int64
 	issmaller Comparable
 }
@@ -154,18 +154,20 @@ func (root *TreeNode) delete(key interface{}) *TreeNode {
 
 		tmp := root.minValueNode()
 		root.key = tmp.key
-		root.Value = tmp.Value
+		root.Values = tmp.Values
 		root.right = root.right.delete(tmp.key)
 
 		root.height = max(root.left.getHeight(), root.right.getHeight()) + 1
 		balance := root.getBalance()
-		if balance > 1 && root.left.getBalance() >= 0 {
-			return root.rightRotate()
-		} else if balance > 1 && root.left.getBalance() < 0 {
+		if balance > 1 {
+			if root.left.getBalance() >= 0 {
+				return root.rightRotate()
+			}
 			return root.leftRightRotate()
-		} else if balance < -1 && root.right.getBalance() <= 0 {
-			return root.leftRotate()
-		} else if balance < -1 && root.right.getBalance() > 0 {
+		} else if balance < -1 {
+			if root.right.getBalance() <= 0 {
+				return root.leftRotate()
+			}
 			return root.rightLeftRotate()
 		}
 	} else {
@@ -175,7 +177,7 @@ func (root *TreeNode) delete(key interface{}) *TreeNode {
 	return root
 }
 
-// isEqual is a generic function that compares a and b of any comprable type
+// isEqual is a generic function that compares a and b of any comparable type
 // return true if a and b are equal, otherwise false
 func isEqual(a interface{}, b interface{}) bool {
 	return a == b
@@ -202,10 +204,12 @@ func (t *Tree) Insert(key interface{}, value interface{}, issmaller Comparable) 
 func (root *TreeNode) insert(key interface{}, value interface{}, issmaller Comparable) (*TreeNode, *TreeNode) {
 	if root == nil {
 		root = &TreeNode{
-			left:      nil,
-			right:     nil,
-			key:       key,
-			Value:     value,
+			left:  nil,
+			right: nil,
+			key:   key,
+			Values: []interface{}{
+				value,
+			},
 			height:    0,
 			issmaller: issmaller,
 		}
@@ -213,6 +217,7 @@ func (root *TreeNode) insert(key interface{}, value interface{}, issmaller Compa
 	}
 
 	if isEqual(key, root.key) {
+		root.Values = append(root.Values, value)
 		return root, root
 	}
 
@@ -415,7 +420,7 @@ func (root *TreeNode) dump() (res []interface{}) {
 		tmp := root.left.dump()
 		res = append(res, tmp...)
 	}
-	res = append(res, root.Value)
+	res = append(res, root.Values...)
 	if root.right != nil {
 		tmp := root.right.dump()
 		res = append(res, tmp...)
@@ -440,18 +445,20 @@ func (root *TreeNode) topN(n int) (res []interface{}) {
 	if root == nil {
 		return res
 	}
+
 	if root.right != nil {
 		tmp := root.right.topN(n)
 		for _, k := range tmp {
 			if len(res) == n {
 				return res
 			}
+
 			res = append(res, k)
 		}
 	}
 
 	if len(res) < n {
-		res = append(res, root.Value)
+		res = append(res, root.Values...)
 	}
 
 	if len(res) == n {
