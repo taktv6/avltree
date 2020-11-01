@@ -147,9 +147,9 @@ func (root *TreeNode) delete(key interface{}) *TreeNode {
 		if root.left == nil && root.right == nil {
 			return nil
 		} else if root.left == nil {
-			return root.left
-		} else if root.right == nil {
 			return root.right
+		} else if root.right == nil {
+			return root.left
 		}
 
 		tmp := root.minValueNode()
